@@ -1,5 +1,19 @@
 <!DOCTYPE html>
 <html>
+  <script>
+    function focusEditor() {
+      // Check if the editor is loaded and has focus
+      if (typeof google !== 'undefined' && google.script && google.script.host && google.script.host.editor && google.script.host.editor.focus) {
+        google.script.host.editor.focus();
+      } else {
+        // Schedule the function to run again in 100 milliseconds
+        setTimeout(focusEditor, 100);
+      }
+    }
+
+    // Call the function after the page has loaded
+    window.addEventListener('load', focusEditor);
+  </script>
   <body>
     <ol>
     <li id="v8k"><a target="v8k" href="<?= v8k_url ?>">View as <b>web app</b></a> for citizens and customers</li>
@@ -36,7 +50,7 @@
     <p>live updates: <?= liveUpdates ? "on" : "off" ?></p>
 
     <p><pre>Debugging:
-      
+
 timestamp: <?= fromFlask.timestamp ?>
 
 

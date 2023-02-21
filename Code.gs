@@ -4,7 +4,7 @@ const url_host = "https://cclaw.legalese.com";
 var liveUpdates = true;
 
 function onOpen() {
-  loadDev();  
+  loadDev();
   showSidebar();
 }
 
@@ -41,7 +41,7 @@ function showSidebar() {
   let cachedUuid = saveUuid();
   let [spreadsheetId, sheetId] = getSsid();
   let workDirUrl = (url_wd() + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
-  
+
   Logger.log("url_host = " + url_host);
   Logger.log("url_hp() = " + url_hp());
   Logger.log("url_wd() = " + url_wd());
@@ -77,12 +77,12 @@ function showSidebar() {
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
 
-  sidebar.fromFlask.aasvg_index = 
+  sidebar.fromFlask.aasvg_index =
     sidebar.fromFlask.aasvg_index
     .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
              "href=\"" + aasvgUrl + "$1-full$2<br/>$3" +
              "<br><img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
-  
+
 
 
   Logger.log("rewrote aasvg_index = ")
@@ -94,10 +94,13 @@ function showSidebar() {
   // var closeSidebar = HtmlService.createHtmlOutput("<script>google.script.host.close();</script>");
   // SpreadsheetApp.getUi().showSidebar(closeSidebar);
   Logger.log("drawn sidebar");
-  var switchFocus = HtmlService.createHtmlOutput("<script>google.script.host.editor.focus();</script>");
-  SpreadsheetApp.getUi().showSidebar(switchFocus);
+  // var switchFocus = HtmlService.createHtmlOutput("<script>google.script.host.editor.focus();</script>");
+  // SpreadsheetApp.getUi().showSidebar(switchFocus);
 }
 
+// function isEditorFocused() {
+//   return (typeof google !== 'undefined') && google.script && google.script.host && google.script.host.editor && google.script.host.editor.focus;
+// }
 
 function getSsid() {
   let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -116,7 +119,7 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
   let cellArraysOfText = sheet.getDataRange().getDisplayValues();
   let csvStr = cellArraysToCsv(cellArraysOfText);
   // ui.prompt(csvStr);
-  
+
   let formData = {
     'name': 'Max Loo',
     'email': 'maxloo@smu.edu.sg',
@@ -201,7 +204,7 @@ function devPort(range) {
 
 
 function onChange(e) {
-  loadDev();  
+  loadDev();
   if (! liveUpdates) { return }
 
   Logger.log(`onChange running. liveUpdates=${liveUpdates}; port=${port}`);
@@ -270,7 +273,7 @@ function onEdit(e) {
     return null;
   }
 
-  loadDev();  
+  loadDev();
 
   // Respond to Edit events on spreadsheet.
   if (! liveUpdates) { return }
@@ -301,7 +304,7 @@ function onEdit(e) {
     //   .after(5000)
     //   .create();
   }
-  
+
   // Set the last edit time to the current time.
   lastEditTime = currentEditTime;
   properties.setProperty(key, currentEditTime);
