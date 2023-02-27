@@ -2,10 +2,26 @@ Logger.log("global top");
 var port       = "8080";
 const url_host = "https://cclaw.legalese.com";
 var liveUpdates = true;
+let sidebarRefreshInterval = 60000;
+var properties = PropertiesService.getDocumentProperties();
+const key = "lastEditTime";
+let ui = SpreadsheetApp.getUi();
 
 function onOpen() {
+  createSidebarMenu();
   loadDev();  
   showSidebar();
+  resetLastEditTime();
+}
+
+function resetLastEditTime() {
+  properties.setProperty(key, 0);
+}
+
+function createSidebarMenu() {
+  ui.createMenu('L4 Sidebar')
+    .addItem('Refresh', 'showSidebar')
+    .addToUi();
 }
 
 function testIP() {
@@ -91,17 +107,8 @@ function showSidebar() {
   Logger.log("drawing sidebar");
   let sidebarOutput = sidebar.evaluate().setTitle('Output from L4');
   SpreadsheetApp.getUi().showSidebar(sidebarOutput);
-  // SpreadsheetApp.getUi().showSidebar(sidebar2.evaluate());
-  // var closeSidebar = HtmlService.createHtmlOutput("<script>google.script.host.close();</script>");
-  // SpreadsheetApp.getUi().showSidebar(closeSidebar);
   Logger.log("drawn sidebar");
-  // var switchFocus = HtmlService.createHtmlOutput("<script>google.script.host.editor.focus();</script>");
-  // SpreadsheetApp.getUi().showSidebar(switchFocus);
 }
-
-// function isEditorFocused() {
-//   return (typeof google !== 'undefined') && google.script && google.script.host && google.script.host.editor && google.script.host.editor.focus;
-// }
 
 function getSsid() {
   let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -140,7 +147,6 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
 }
 
 function cellArraysToCsv(rows) {
-  const ui = SpreadsheetApp.getUi();
   const regex = /"/g;
   let csvStr = "";
   for (let i = 0; i < rows.length; i++) {
@@ -260,17 +266,19 @@ function scanDocIF(sheet) {
   }
 }
 function onEdit(e) {
-  var properties = PropertiesService.getDocumentProperties();
-  var key = "lastEditTime";
   var lastEditTime = properties.getProperty(key);
-
+  // ui.alert("after lastEditTime = properties.getProperty(key): " + lastEditTime)
   var currentEditTime = new Date().getTime();
+  // set a new lastEditTime if one doesn't exist or if it's been more than 60 seconds since the last edit
+  if (lastEditTime == 0) {
+    lastEditTime = currentEditTime;
+    // ui.alert("inside if, lastEditTime: " + lastEditTime);
+    properties.setProperty(key, lastEditTime);
+  }
   var timePassed = currentEditTime - lastEditTime;
-  const ui = SpreadsheetApp.getUi();
-  // ui.prompt(currentEditTime + " - " + lastEditTime + " = " + timePassed);
-  if (lastEditTime && (timePassed < 5000)) {
-    // If less than 5 seconds have passed since the last edit, do nothing.
-    // ui.prompt("lastEditTime && (timePassed < 5000)");
+  // ui.alert("timePassed: " + timePassed);
+  if (lastEditTime && (timePassed < sidebarRefreshInterval)) {
+    // If less than 60 seconds have passed since the last edit, do nothing.
     return null;
   }
 
@@ -296,31 +304,25 @@ function onEdit(e) {
 //     c.offset(-1,0).clear();
 //   }
 // }
-  if (lastEditTime && timePassed > 5000) {
-    // If less than 5 seconds have passed since the last edit, do nothing.
+  if (lastEditTime && (timePassed > sidebarRefreshInterval)) {
+    // If more than 60 seconds have passed since the last edit, refresh Sidebar.
     showSidebar();
-    google.script.host.editor.focus();
+    // Reset lastEditTime.
+    resetLastEditTime();
     // ScriptApp.newTrigger("resetLastEditTime")
     //   .timeBased()
     //   .after(5000)
     //   .create();
   }
   
-  // Set the last edit time to the current time.
-  lastEditTime = currentEditTime;
-  properties.setProperty(key, currentEditTime);
   // ui.prompt(lastEditTime);
-  google.script.host.editor.focus();
-  var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    if (triggers[i].getHandlerFunction() == "onEdit") {
-      ScriptApp.deleteTrigger(triggers[i]);
-    }
-  }
-}
-
-function resetLastEditTime() {
-  lastEditTime = null;
+  // google.script.host.editor.focus();
+  // var triggers = ScriptApp.getProjectTriggers();
+  // for (var i = 0; i < triggers.length; i++) {
+  //   if (triggers[i].getHandlerFunction() == "onEdit") {
+  //     ScriptApp.deleteTrigger(triggers[i]);
+  //   }
+  // }
 }
 
 function startProcessing(c, h, sheet) {
